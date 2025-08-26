@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة تيار المكيفات</title>
+    <style>
+        /* بداية كود CSS المدمج */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f7f6;
+            margin: 0;
+            direction: rtl; /* اتجاه النص الافتراضي: عربي */
+            text-align: right; /* محاذاة النص الافتراضية: لليمين */
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            position: relative; /* لتحديد موقع زر اللغة */
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .input-group input[type="number"],
+        .input-group select {
+            width: calc(100% - 20px); /* Adjusting for padding */
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        .input-group input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2); /* Make checkbox slightly larger */
+            vertical-align: middle;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9f7ef;
+            border: 1px solid #d4edda;
+            border-radius: 8px;
+            text-align: right;
+        }
+
+        .result-box h2 {
+            color: #28a745;
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+
+        .result-box p {
+            color: #333;
+            font-size: 1.1em;
+            line-height: 1.6;
+            white-space: pre-wrap; /* للحفاظ على تنسيق الأسطر الجديدة */
+        }
+
+        .lang-toggle-button {
+            position: absolute;
+            top: 10px;
+            left: 10px; /* تغيير الموقع ليكون في اليسار */
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .lang-toggle-button:hover {
+            background-color: #5a6268;
+        }
+
+        /* لتحسين تجربة المستخدم على الشاشات الصغيرة */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+            .lang-toggle-button {
+                padding: 6px 10px;
+                font-size: 0.8em;
+            }
+        }
+        /* نهاية كود CSS المدمج */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="lang-toggle-button" onclick="toggleLanguage()">English</button>
+
+        <h1 id="pageTitle">حاسبة تيار المكيفات</h1>
+
+        <div class="input-group">
+            <label for="tons" id="labelTons">حجم المكيف بالطن:</label>
+            <input type="number" id="tons" placeholder="مثال: 5" min="0.1" step="0.1">
+        </div>
+
+        <div class="input-group">
+            <label for="voltage" id="labelVoltage">الجهد بالفولت:</label>
+            <input type="number" id="voltage" placeholder="مثال: 220 أو 380" min="1">
+        </div>
+
+        <div class="input-group">
+            <label for="phase" id="labelPhase">نوع الطور:</label>
+            <select id="phase">
+                <option value="1" id="optionPhase1">أحادي الطور</option>
+                <option value="3" id="optionPhase3">ثلاثي الطور</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="powerFactor" id="labelPowerFactor">معامل القدرة (0.1 - 1.0):</label>
+            <input type="number" id="powerFactor" placeholder="مثال: 0.85" min="0.1" max="1.0" step="0.01">
+        </div>
+
+        <div class="input-group">
+            <label for="directWattsInput" id="labelDirectWattsInput">هل لديك القدرة بالواط مباشرة؟</label>
+            <input type="checkbox" id="directWattsInput">
+        </div>
+
+        <div class="input-group" id="wattsInputGroup" style="display: none;">
+            <label for="watts" id="labelWatts">القدرة بالواط (اختياري):</label>
+            <input type="number" id="watts" placeholder="مثال: 5000" min="1">
+        </div>
+
+        <button onclick="calculateCurrent()" id="calculateButton">احسب التيار</button>
+
+        <div class="result-box">
+            <h2 id="resultsTitle">النتائج:</h2>
+            <p id="result"></p>
+        </div>
+    </div>
+
+    <script>
+        /* بداية كود JavaScript المدمج */
+        const translations = {
+            ar: {
+                pageTitle: "حاسبة تيار المكيفات",
+                toggleButton: "English",
+                labelTons: "حجم المكيف بالطن:",
+                labelVoltage: "الجهد بالفولت:",
+                labelPhase: "نوع الطور:",
+                optionPhase1: "أحادي الطور",
+                optionPhase3: "ثلاثي الطور",
+                labelPowerFactor: "معامل القدرة (0.1 - 1.0):",
+                labelDirectWattsInput: "هل لديك القدرة بالواط مباشرة؟",
+                labelWatts: "القدرة بالواط (اختياري):",
+                calculateButton: "احسب التيار",
+                resultsTitle: "النتائج:",
+                errorTons: "الرجاء إدخال حجم مكيف صحيح (أكبر من 0).",
+                errorVoltage: "الرجاء إدخال جهد صحيح (أكبر من 0).",
+                errorPowerFactor: "الرجاء إدخال معامل قدرة صحيح (بين 0.1 و 1.0).",
+                errorWatts: "الرجاء إدخال قدرة بالواط صحيحة (أكبر من 0) إذا اخترت الإدخال المباشر.",
+                estimatedWatts: "تم تقدير القدرة بالواط بـ: {watts} واط (بناءً على 1200 واط/طن).",
+                resultTons: "حجم المكيف:",
+                resultVoltage: "الجهد:",
+                resultPhase: "نوع الطور:",
+                resultPhase1: "أحادي الطور",
+                resultPhase3: "ثلاثي الطور",
+                resultPowerFactor: "معامل القدرة:",
+                resultPower: "القدرة الكهربائية:",
+                resultCurrent: "التيار المسحوب:",
+                unitTons: " طن",
+                unitVoltage: " فولت",
+                unitWatts: " واط",
+                unitAmps: " أمبير"
+            },
+            en: {
+                pageTitle: "AC Current Calculator",
+                toggleButton: "العربية",
+                labelTons: "AC Size (Tons):",
+                labelVoltage: "Voltage (Volts):",
+                labelPhase: "Phase Type:",
+                optionPhase1: "Single Phase",
+                optionPhase3: "Three Phase",
+                labelPowerFactor: "Power Factor (0.1 - 1.0):",
+                labelDirectWattsInput: "Enter Watts Directly?",
+                labelWatts: "Power (Watts) (Optional):",
+                calculateButton: "Calculate Current",
+                resultsTitle: "Results:",
+                errorTons: "Please enter a valid AC size (greater than 0).",
+                errorVoltage: "Please enter a valid voltage (greater than 0).",
+                errorPowerFactor: "Please enter a valid power factor (between 0.1 and 1.0).",
+                errorWatts: "Please enter valid power in Watts (greater than 0) if direct input is chosen.",
+                estimatedWatts: "Estimated power: {watts} Watts (based on 1200 W/Ton).",
+                resultTons: "AC Size:",
+                resultVoltage: "Voltage:",
+                resultPhase: "Phase Type:",
+                resultPhase1: "Single Phase",
+                resultPhase3: "Three Phase",
+                resultPowerFactor: "Power Factor:",
+                resultPower: "Electrical Power:",
+                resultCurrent: "Current Drawn:",
+                unitTons: " Tons",
+                unitVoltage: " Volts",
+                unitWatts: " Watts",
+                unitAmps: " Amps"
+            }
+        };
+
+        let currentLang = 'ar'; // اللغة الافتراضية
+
+        // دالة لتغيير اللغة
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.setAttribute('lang', lang); // تحديث سمة lang في HTML
+            document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr'); // تحديث اتجاه النص
+
+            // تحديث محتوى العناصر بناءً على اللغة الجديدة
+            document.getElementById('pageTitle').textContent = translations[lang].pageTitle;
+            document.querySelector('.lang-toggle-button').textContent = translations[lang].toggleButton;
+            document.getElementById('labelTons').textContent = translations[lang].labelTons;
+            document.getElementById('labelVoltage').textContent = translations[lang].labelVoltage;
+            document.getElementById('labelPhase').textContent = translations[lang].labelPhase;
+            document.getElementById('optionPhase1').textContent = translations[lang].optionPhase1;
+            document.getElementById('optionPhase3').textContent = translations[lang].optionPhase3;
+            document.getElementById('labelPowerFactor').textContent = translations[lang].labelPowerFactor;
+            document.getElementById('labelDirectWattsInput').textContent = translations[lang].labelDirectWattsInput;
+            document.getElementById('labelWatts').textContent = translations[lang].labelWatts;
+            document.getElementById('calculateButton').textContent = translations[lang].calculateButton;
+            document.getElementById('resultsTitle').textContent = translations[lang].resultsTitle;
+
+            // مسح النتائج عند تغيير اللغة لتجنب خلط اللغات
+            document.getElementById('result').innerHTML = '';
+        }
+
+        // دالة تبديل اللغة عند الضغط على الزر
+        function toggleLanguage() {
+            setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const directWattsInputCheckbox = document.getElementById('directWattsInput');
+            const wattsInputGroup = document.getElementById('wattsInputGroup');
+
+            // إظهار أو إخفاء حقل إدخال الواط بناءً على اختيار المستخدم
+            directWattsInputCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    wattsInputGroup.style.display = 'block';
+                } else {
+                    wattsInputGroup.style.display = 'none';
+                }
+            });
+
+            // تعيين اللغة الافتراضية عند تحميل الصفحة
+            setLanguage(currentLang);
+        });
+
+        function calculateCurrent() {
+            const tons = parseFloat(document.getElementById('tons').value);
+            const voltage = parseFloat(document.getElementById('voltage').value);
+            const phase = parseInt(document.getElementById('phase').value);
+            const powerFactor = parseFloat(document.getElementById('powerFactor').value);
+            const directWattsInput = document.getElementById('directWattsInput').checked;
+            let watts;
+
+            const resultElement = document.getElementById('result');
+            resultElement.innerHTML = ''; // مسح النتائج السابقة
+
+            // التحقق من صحة المدخلات وعرض الرسائل باللغة المختارة
+            if (isNaN(tons) || tons <= 0) {
+                resultElement.innerHTML = `<span style="color: red;">${translations[currentLang].errorTons}</span>`;
+                return;
+            }
+            if (isNaN(voltage) || voltage <= 0) {
+                resultElement.innerHTML = `<span style="color: red;">${translations[currentLang].errorVoltage}</span>`;
+                return;
+            }
+            if (isNaN(powerFactor) || powerFactor <= 0 || powerFactor > 1) {
+                resultElement.innerHTML = `<span style="color: red;">${translations[currentLang].errorPowerFactor}</span>`;
+                return;
+            }
+
+            if (directWattsInput) {
+                watts = parseFloat(document.getElementById('watts').value);
+                if (isNaN(watts) || watts <= 0) {
+                    resultElement.innerHTML = `<span style="color: red;">${translations[currentLang].errorWatts}</span>`;
+                    return;
+                }
+            } else {
+                watts = tons * 1200;
+                let estimatedWattsMsg = translations[currentLang].estimatedWatts.replace("{watts}", watts.toFixed(2));
+                resultElement.innerHTML += `<p>${estimatedWattsMsg}</p>`;
+            }
+
+            let current = 0;
+            if (phase === 1) {
+                current = watts / (voltage * powerFactor);
+            } else if (phase === 3) {
+                current = watts / (Math.sqrt(3) * voltage * powerFactor);
+            }
+
+            // عرض النتائج باللغة المختارة
+            let resultsHtml = `
+                <p><strong>${translations[currentLang].resultTons}</strong> ${tons}${translations[currentLang].unitTons}</p>
+                <p><strong>${translations[currentLang].resultVoltage}</strong> ${voltage}${translations[currentLang].unitVoltage}</p>
+                <p><strong>${translations[currentLang].resultPhase}</strong> ${phase === 1 ? translations[currentLang].resultPhase1 : translations[currentLang].resultPhase3}</p>
+                <p><strong>${translations[currentLang].resultPowerFactor}</strong> ${powerFactor}</p>
+                <p><strong>${translations[currentLang].resultPower}</strong> ${watts.toFixed(2)}${translations[currentLang].unitWatts}</p>
+                <h3>${translations[currentLang].resultCurrent} <span style="color: #007bff;">${current.toFixed(2)}${translations[currentLang].unitAmps}</span></h3>
+            `;
+            resultElement.innerHTML += resultsHtml;
+        }
+        /* نهاية كود JavaScript المدمج */
+    </script>
+</body>
+</html>

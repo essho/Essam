@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>تطبيق تصميم إضاءة الغرفة</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <div id="top-toolbar">
+            <button id="select-tool">تحديد 👆</button>
+            <button id="undo-btn" title="تراجع (Ctrl+Z)">تراجع ↩️</button>
+            <button id="redo-btn" title="إعادة (Ctrl+Y)">إعادة ↪️</button>
+            <button id="polywall-tool">جدران متصلة ⛓️</button>
+            <button id="draw-tool">جدار واحد</button>
+            <button id="door-tool">إضافة باب</button>
+            <button id="window-tool">إضافة نافذة</button>
+            <button id="furniture-tool">إضافة أثاث</button>
+            <button id="lighting-tool">إضافة إضاءة</button>
+            <div id="export-container" style="position: relative;">
+                <button id="export-btn">تصدير 🖼️</button>
+                <div id="export-options">
+                    <a href="#" id="export-2d-png">تصدير صورة 2D (PNG)</a>
+                    <a href="#" id="export-json">تصدير تصميم (JSON)</a>
+                </div>
+            </div>
+            <button id="import-btn" class="io-button">استيراد 📂</button>
+            <input type="file" id="import-file-input" style="display: none;" accept=".json">
+            <button id="view-3d-tool">عرض ثلاثي الأبعاد 🕶️</button>
+            <button id="save-design-btn" class="io-button">حفظ 💾</button>
+            <button id="new-design-btn" class="io-button">جديد 📄</button>
+        </div>
+        <div id="main-content">
+            <div id="sidebar">
+                <h2>الخيارات</h2>
+                <div id="sidebar-furniture-list" class="item-list"></div>
+                <div id="sidebar-lighting-list" class="item-list"></div>
+                <div id="sidebar-furniture-props" class="props-panel"></div>
+                <div id="sidebar-lighting-props" class="props-panel"></div>
+                <div id="sidebar-wall-props" class="props-panel"></div>
+            </div>
+            <div id="canvas-container">
+                <canvas id="drawing-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+    <div id="modal-backdrop"></div>
+    <div id="modal-furniture-list" class="modal item-list"></div>
+    <div id="modal-lighting-list" class="modal item-list"></div>
+    <div id="modal-furniture-props" class="modal props-panel"></div>
+    <div id="modal-lighting-props" class="modal props-panel"></div>
+    <div id="modal-wall-props" class="modal props-panel"></div>
+
+    <div id="view-3d-container">
+        <button id="close-3d-view" class="view-3d-button">عودة للرسم ✏️</button>
+        <button id="export-3d-btn" class="view-3d-button">تصدير صورة 3D 🖼️</button>
+        <div id="exposure-control-container">
+            <label for="exposure-slider">سطوع المشهد</label>
+            <input type="range" id="exposure-slider" min="0" max="2.5" value="2.0" step="0.1">
+        </div>
+        <div id="renderer-container"></div>
+    </div>
+    
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.155.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.155.0/examples/jsm/" } } </script>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
