@@ -2,18 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <title>عرض بانورامي + واجهة تفاعلية — عصام الكهربائي</title>
+  <title>واجهة تفاعلية — عصام الكهربائي (بدون خلفية 360)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <style>
-    button { position: absolute; top: 20px; padding: 10px 20px; font-size: 16px; z-index: 999; background-color: rgba(0,0,0,0.6); color: white; border: none; border-radius: 8px; cursor: pointer; }
-    #prevBtn { left: 20px; display: none; }  #nextBtn { right: 20px; display: none; }
-
     :root{ --ep-panel: rgba(10,14,20,0.65); --ep-ring: rgba(0,229,255,0.35); --ep-accent:#00e5ff; --ep-bulb:#ffd166; }
     body { margin: 0; background:#000; color:#e8eef6; font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Naskh Arabic UI",Tahoma,Arial,sans-serif; }
     .ep-scene-ui{ position:fixed; inset:0; pointer-events:none; }
-
     .ep-strip{ position:absolute; inset-inline:0; inset-block-end:max(10px,3vh); pointer-events:auto; overflow:hidden; }
     .ep-track{ display:flex; flex-wrap:nowrap; gap:12px; will-change:transform; }
     .ep-thumb{ flex:0 0 auto; width:clamp(120px, 20vw, 200px); height:clamp(150px, 26vw, 220px);
@@ -58,19 +54,40 @@
 </head>
 <body>
 
-  <a-scene>
-    <a-videosphere id="videoSphere" src="#video360"></a-videosphere>
-    <a-sky id="sky" visible="false" rotation="0 0 0"></a-sky>
-    <a-camera wasd-controls-enabled="false" look-controls="enabled: true;"></a-camera>
-    <video id="video360" loop="false" playsinline webkit-playsinline crossorigin="anonymous">
-      <source src="videos/my_360_video.mp4" type="video/mp4"> المتصفح لا يدعم تشغيل الفيديو.
-    </video>
+  <!-- A-Frame Scene for 360 video/images -->
+  <a-scene id="main-scene">
+    <a-assets>
+      <video id="video360" src="videos/my_360_video.mp4"
+             crossorigin="anonymous"
+             playsinline webkit-playsinline
+             preload="auto"></video>
+
+      <img id="pano1" src="images/pano1.jpg">
+      <img id="pano1" src="images/pano2.jpg">
+      <img id="pano1" src="images/pano3.jpg">
+      <img id="pano1" src="images/pano4.jpg">
+      <img id="pano1" src="images/pano5.jpg">
+      <img id="pano1" src="images/pano6.jpg">
+      <img id="pano1" src="images/pano7.jpg">
+      <img id="pano1" src="images/pano8.jpg">
+      <img id="pano1" src="images/pano9.jpg">
+      <img id="pano1" src="images/pano10.jpg">
+      <img id="pano1" src="images/pano11.jpg">
+    </a-assets>
+
+    <!-- Background -->
+    <a-sky id="sky" material="shader: flat" src="#video360"></a-sky>
+
+    <!-- Reflective sphere -->
+    <a-sphere id="eyeSphere" radius="1" position="0 4.0 -3"
+              material="shader: flat; side: back; src:#video360"></a-sphere>
+
+    <a-entity position="0 1.6 0">
+      <a-camera look-controls="reverseMouseDrag: true" wasd-controls-enabled="false"></a-camera>
+    </a-entity>
   </a-scene>
 
   <audio id="bgSound" loop><source src="background_music.mp3"> المتصفح لا يدعم تشغيل الصوت.</audio>
-
-  <button id="prevBtn" onclick="prevImage()">⏮ السابق</button>
-  <button id="nextBtn" onclick="nextImage()">⏭ التالي</button>
 
   <div class="ep-scene-ui" aria-hidden="false">
     <div class="ep-strip" id="epStrip"><div class="ep-track" id="epTrack"></div></div>
@@ -103,18 +120,72 @@
   </div>
 
   <script>
-    var video = document.getElementById('video360'), videoSphere = document.getElementById('videoSphere'), sky = document.getElementById('sky'), bgSound = document.getElementById('bgSound');
-    var prevBtn = document.getElementById('prevBtn'), nextBtn = document.getElementById('nextBtn');
-    var images = ['images/pano1.jpg','images/pano2.jpg','images/pano3.jpg','images/pano4.jpg','images/pano5.jpg','images/pano6.jpg','images/pano7.jpg','images/pano8.jpg','images/pano9.jpg','images/pano10.jpg','images/pano11.jpg'];
-    var currentIndex = 0, angle = 0;
-    document.addEventListener('DOMContentLoaded', function(){ video.muted = true; video.play().catch(function(){}); });
-    function unlockAudioOnce(){ if (video.muted) { video.muted = false; video.play().catch(function(){}); } bgSound.play().catch(function(){});
-      window.removeEventListener('pointerdown', unlockAudioOnce); window.removeEventListener('touchstart', unlockAudioOnce); window.removeEventListener('keydown', unlockAudioOnce); }
-    window.addEventListener('pointerdown', unlockAudioOnce); window.addEventListener('touchstart', unlockAudioOnce); window.addEventListener('keydown', unlockAudioOnce);
-    video.addEventListener('ended', function () { videoSphere.setAttribute('visible', 'false'); sky.setAttribute('visible', 'true'); sky.setAttribute('src', images[currentIndex]); prevBtn.style.display = 'block'; nextBtn.style.display = 'block'; startAutoRotate(); bgSound.play().catch(function(){}); });
-    function nextImage() { currentIndex = (currentIndex + 1) % images.length; sky.setAttribute('src', images[currentIndex]); angle = 0; }
-    function prevImage() { currentIndex = (currentIndex - 1 + images.length) % images.length; sky.setAttribute('src', images[currentIndex]); angle = 0; }
-    function startAutoRotate() { setInterval(function () { angle += 0.5; if (angle >= 360) { angle = 0; nextImage(); } sky.setAttribute('rotation', '0 ' + angle + ' 0'); }, 50); }
+    const video = document.querySelector('#video360');
+    const sky = document.querySelector('#sky');
+    const eye = document.querySelector('#eyeSphere');
+    const mainScene = document.getElementById('main-scene');
+
+    // Photos after the video
+    const images = ['#pano1','#pano2','#pano3'];
+
+    // Duration of the full rotation in milliseconds
+    const rotationDuration = 15000;
+
+    let currentIndex = 0;
+
+    // Listen for the video to end before starting the image loop
+    video.addEventListener('ended', () => {
+      startLoop();
+    });
+
+    // Starts the image loop
+    function startLoop(){
+      currentIndex = 0;
+      showNext();
+    }
+
+    // Displays the next image and rotates it
+    function showNext(){
+      const src = images[currentIndex];
+      sky.setAttribute('src', src);
+      eye.setAttribute('material', 'shader: flat; side: back; src:' + src);
+      animateRotation(rotationDuration, () => {
+        currentIndex = (currentIndex + 1) % images.length;
+        showNext();
+      });
+    }
+
+    // Animates the rotation smoothly
+    function animateRotation(duration, onComplete){
+      let start = null;
+      function step(timestamp){
+        if (!start) start = timestamp;
+        let progress = timestamp - start;
+        let ratio = Math.min(progress / duration, 1);
+        let angle = ratio * 360;
+        sky.setAttribute('rotation', `0 ${angle} 0`);
+        eye.setAttribute('rotation', `0 ${-angle} 0`);
+        if (progress < duration){
+          requestAnimationFrame(step);
+        } else {
+          if (onComplete) onComplete();
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    var bgSound = document.getElementById('bgSound');
+
+    // تفعيل الصوت بعد أول تفاعل فقط (اختياري)
+    function unlockAudioOnce(){
+      try{ bgSound.play().catch(function(){}); }catch(e){}
+      window.removeEventListener('pointerdown', unlockAudioOnce);
+      window.removeEventListener('touchstart', unlockAudioOnce);
+      window.removeEventListener('keydown', unlockAudioOnce);
+    }
+    window.addEventListener('pointerdown', unlockAudioOnce);
+    window.addEventListener('touchstart', unlockAudioOnce);
+    window.addEventListener('keydown', unlockAudioOnce);
 
     (function(){
       function $(id){ return document.getElementById(id); }
@@ -199,11 +270,9 @@
       }
 
       function buildThumbData(pages){
-        // Return Promise<array of {href,label,thumb}>
         var jobs = pages.map(function(p){
           var href = p.href, label = computeLabelText(href, p.title);
           if(p.thumb){ return Promise.resolve({href:href, label:label, thumb:p.thumb}); }
-          // Try meta first, then screenshot — both same-origin only
           return discoverThumbViaMeta(href).then(function(t){ if(t) return t; return screenshotSameOrigin(href); }).then(function(t){ return {href:href, label:label, thumb:t||''}; });
         });
         return Promise.all(jobs);
@@ -218,7 +287,6 @@
 
       function fillTrackWithData(data){
         epTrack.innerHTML='';
-        // duplicate sets until we exceed 2x viewport width
         var need = epStrip.clientWidth * 2, safety=0;
         while(epTrack.scrollWidth < need && safety++ < 30){
           for(var i=0;i<data.length;i++){ epTrack.appendChild(makeThumbEl(data[i])); }
@@ -247,17 +315,14 @@
         }
         requestAnimationFrame(step);
 
-        // Click delegation (works for all duplicates without per-node listeners)
         epTrack.addEventListener('click', function(e){
           var t = e.target.closest('.ep-thumb'); if(!t) return;
           openPage({href:t.getAttribute('data-href'), title:t.getAttribute('data-label')});
         });
       }
 
-      // === Pipeline: once on startup ===
       (function initStripOnce(){
         getPages().then(buildThumbData).then(function(data){
-          // cache once; never mutate afterwards
           fillTrackWithData(data);
           startTicker();
         }).catch(function(err){
@@ -270,8 +335,16 @@
       btnBackBar.addEventListener('click', closePage);
       viewOverlay.addEventListener('click', function(e){ if(e.target===viewOverlay) closePage(); });
 
+document.addEventListener('DOMContentLoaded', () => {
+  const video = document.getElementById('video360');
+  if (video) {
+    video.muted = true;      // مهم عشان أغلب المتصفحات بتسمح بالأوتوبلاي لو الفيديو مكتوم
+    video.play().catch(() => {});
+  }
+});
+
       var isMuted = false;
-      function setMuted(m){ isMuted = m; video.muted = isMuted; try{ if(isMuted){ bgSound.pause(); } else { bgSound.play().catch(function(){}); } }catch(e){}; btnBulbMute.textContent = isMuted ? '🔇' : '🔊'; }
+      function setMuted(m){ isMuted = m; try{ if(isMuted){ bgSound.pause(); } else { bgSound.play().catch(function(){}); } }catch(e){}; btnBulbMute.textContent = isMuted ? '🔇' : '🔊'; }
       btnBulbMute.addEventListener('click', function(e){ e.stopPropagation(); setMuted(!isMuted); });
       setMuted(false);
     })();
